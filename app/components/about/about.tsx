@@ -33,7 +33,7 @@ export default function About() {
                             Today, we stand as a top-tier, USA-based development team, trusted by leading businesses to build the future.
                         </p>
                         <p className="text-base md:text-lg lg:text-xl text-gray-300">
-                            We're not just developers; we are partners in your success.
+                            We&apos;re not just developers; we are partners in your success.
                             Our deep understanding of the USA market ensures we build solutions that resonate with your audience and drive tangible growth.
                         </p>
                     </div>

@@ -5,7 +5,7 @@ import { Carousel } from "flowbite-react";
 const testimonials = [
     {
         quote:
-            "We chose them for their reputation, and they delivered far beyond our expectations. The team's expertise and seamless communication are unmatched.",
+            "We chose them for their reputation, and they delivered far beyond our expectations. The team&apos;s expertise and seamless communication are unmatched.",
         name: "Jane Doe",
         role: "CEO, Tech Innovators",
     },
@@ -54,7 +54,7 @@ export default function Clients() {
 
                 {/* Carousel */}
                 <Carousel
-                    className="w-full max-w-5xl mx-auto mt-44 mb-24"
+                    className="w-full max-w-5xl mx-auto mt-16"
                     slideInterval={6000}
                     indicators={true}
                 >
@@ -68,7 +68,9 @@ export default function Clients() {
                                     key={i}
                                     className="testimonial-card p-8 bg-gray-900 rounded-xl shadow-lg"
                                 >
-                                    <p className="text-lg italic text-gray-300 mb-4">"{t.quote}"</p>
+                                    <p className="text-lg italic text-gray-300 mb-4 before:content-['“'] after:content-['”']">
+                                        {t.quote}
+                                    </p>
                                     <p className="font-bold text-base md:text-lg text-white">
                                         {t.name}
                                     </p>
