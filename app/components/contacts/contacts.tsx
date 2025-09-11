@@ -32,7 +32,7 @@ export default function Contact() {
                     size="lg"
                     color="blue"
                     aria-label="Get a free project quote via email"
-                    className="font-bold py-3 px-8 rounded-full uppercase tracking-wide hover:scale-105 transition"
+                    className="inline-block bg-blue-500 text-black font-bold py-3 px-8 rounded-full uppercase tracking-wide hover:scale-105 transition"
                 >
                     Get a Free Quote
                 </Button>
