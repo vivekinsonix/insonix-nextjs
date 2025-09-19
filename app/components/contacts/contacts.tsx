@@ -32,9 +32,9 @@ export default function Contact() {
 
 
 
-                <SigmaGraph />
+                {/* <SigmaGraph /> */}
 
-                {/* CTA Button */}
+                {/* CTA Button */}s
                 {/* <Button
                     as="a"
                     href="mailto:contact@yourcompany.com"

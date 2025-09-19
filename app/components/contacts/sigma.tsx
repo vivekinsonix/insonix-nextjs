@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -153,6 +154,7 @@ const SigmaGraph: React.FC = () => {
         // Cleanup
         return () => {
             renderer.kill();
+            // eslint-disable-next-line react-hooks/exhaustive-deps
             inputRef.current?.removeEventListener("change", handleSearch);
             cancelAnimationFrame(animationFrame);
         };
