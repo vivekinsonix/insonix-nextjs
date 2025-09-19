@@ -1,0 +1,76 @@
+{
+  "nodes": [
+    {
+      "id": "n1",
+      "label": "🌾 Agri Food",
+      "x": 0,
+      "y": 0,
+      "size": 30,
+      "labelSize": 16,
+      "color": "#fafafa"
+    },
+    {
+      "id": "n2",
+      "label": "📅 Event Management (Expo Vendors)",
+      "x": 2,
+      "y": 2,
+      "size": 10,
+      "labelSize": 16,
+      "color": "#FF9800"
+    },
+    {
+      "id": "n3",
+      "label": "🏡 Real Estate",
+      "x": -1,
+      "y": 3,
+      "size": 25,
+      "labelSize": 16,
+      "color": "#9C27B0"
+    },
+    {
+      "id": "n4",
+      "label": "👴🩺 Healthcare (Elderly Care)",
+      "x": 3,
+      "y": -2,
+      "size": 9,
+      "labelSize": 16,
+      "color": "#2196F3"
+    },
+    {
+      "id": "n5",
+      "label": "🛒 Retail/Delivery",
+      "x": -2,
+      "y": -1,
+      "size": 11,
+      "labelSize": 16,
+      "color": "#E91E63"
+    },
+    {
+      "id": "n6",
+      "label": "👁 Insonix",
+      "x": 1,
+      "y": 1,
+      "size": 35,
+      "labelSize": 20,
+      "color": "#fce96a"
+    },
+    {
+      "id": "n7",
+      "label": "🧍‍♂️🛡️ Defense",
+      "x": 4,
+      "y": -1,
+      "size": 11,
+      "labelSize": 16,
+      "color": "#E91E63"
+    }
+  ],
+  "edges": [
+    { "id": "e1", "source": "n6", "target": "n1" },
+    { "id": "e2", "source": "n6", "target": "n2" },
+    { "id": "e3", "source": "n6", "target": "n3" },
+    { "id": "e4", "source": "n6", "target": "n4" },
+    { "id": "e5", "source": "n6", "target": "n5" },
+    { "id": "e6", "source": "n6", "target": "n7" },
+    { "id": "e7", "source": "n2", "target": "n5" }
+  ]
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "flowbite-react";
+import SigmaGraph from "./sigma";
 
 export default function Contact() {
     return (
@@ -9,6 +10,9 @@ export default function Contact() {
             className="py-16 md:py-24 text-center bg-gray-950 text-gray-200"
         >
             <div className="container mx-auto">
+
+
+
                 {/* Section header */}
                 <div className="mb-12">
                     <p className="text-sm font-medium text-gray-400 mb-2 uppercase tracking-wider">
@@ -25,8 +29,13 @@ export default function Contact() {
                     and turn your ideas into a reality that stands out.
                 </p>
 
+
+
+
+                <SigmaGraph />
+
                 {/* CTA Button */}
-                <Button
+                {/* <Button
                     as="a"
                     href="mailto:contact@yourcompany.com"
                     size="lg"
@@ -35,10 +44,10 @@ export default function Contact() {
                     className="inline-block bg-blue-500 text-black font-bold py-3 px-8 rounded-full uppercase tracking-wide hover:scale-105 transition"
                 >
                     Get a Free Quote
-                </Button>
+                </Button> */}
 
                 {/* Contact Info */}
-                <div className="mt-12 md:mt-16 text-center">
+                {/* <div className="mt-12 md:mt-16 text-center">
                     <p className="text-lg font-semibold text-gray-300">Connect with Us</p>
                     <address className="text-sm md:text-base text-gray-500 mt-2 not-italic">
                         [Your Company Address], USA
@@ -51,7 +60,7 @@ export default function Contact() {
                             contact@yourcompany.com
                         </a>
                     </address>
-                </div>
+                </div> */}
             </div>
         </section>
     );

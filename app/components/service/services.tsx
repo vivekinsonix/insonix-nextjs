@@ -5,7 +5,7 @@ import { Card } from "flowbite-react";
 
 const services = [
     {
-        title: "Custom Software Development",
+        title: "Product Managers & CTOs at funded startups",
         desc: "Building bespoke, scalable, and secure software solutions that perfectly align with your business goals and operational needs.",
         icon: (
             <svg
@@ -25,7 +25,7 @@ const services = [
         ),
     },
     {
-        title: "Web Application Development",
+        title: "Midsize companies with digital transformation needs",
         desc: "Creating high-performance, user-friendly web applications that deliver seamless experiences and drive user engagement.",
         icon: (
             <svg
@@ -45,7 +45,47 @@ const services = [
         ),
     },
     {
-        title: "UI/UX Design & Strategy",
+        title: "Agencies & Consulting firms",
+        desc: "Designing intuitive, elegant user interfaces and crafting a seamless user experience that captivates your audience.",
+        icon: (
+            <svg
+                className="h-12 w-12 mx-auto mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                style={{ color: "var(--color-accent)" }}
+            >
+                <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5.5 8.5v7h-1v-7h1zm15 7v-7h-1v7h1zm-13-7h7v7h-7v-7zm13 0h-7v7h7v-7zm-13 7h7v7h-7v-7zm13 0h-7v7h7v-7z"
+                ></path>
+            </svg>
+        ),
+    },
+    {
+        title: "Enterprises with legacy systems",
+        desc: "Designing intuitive, elegant user interfaces and crafting a seamless user experience that captivates your audience.",
+        icon: (
+            <svg
+                className="h-12 w-12 mx-auto mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                style={{ color: "var(--color-accent)" }}
+            >
+                <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5.5 8.5v7h-1v-7h1zm15 7v-7h-1v7h1zm-13-7h7v7h-7v-7zm13 0h-7v7h7v-7zm-13 7h7v7h-7v-7zm13 0h-7v7h7v-7z"
+                ></path>
+            </svg>
+        ),
+    },
+    {
+        title: "Companies with failing projects",
         desc: "Designing intuitive, elegant user interfaces and crafting a seamless user experience that captivates your audience.",
         icon: (
             <svg
