@@ -1,7 +1,7 @@
 "use client";
 
 
-import SigmaGraph from "./sigma";
+// import SigmaGraph from "./sigma";
 
 export default function Contact() {
     return (
