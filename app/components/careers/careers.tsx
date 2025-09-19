@@ -63,7 +63,7 @@ export default function Careers() {
                         Hire
                     </p>
                     <h2 className="text-3xl md:text-5xl font-extrabold">
-                        Careers – Experienced <br className="sm:hidden" />
+                        Careers - Experienced <br className="sm:hidden" />
                         AI & Python Developers
                     </h2>
                 </div>

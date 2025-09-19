@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "flowbite-react";
+
 import SigmaGraph from "./sigma";
 
 export default function Contact() {
@@ -25,7 +25,7 @@ export default function Contact() {
 
                 {/* Short pitch */}
                 <p className="text-base md:text-lg lg:text-xl max-w-3xl mx-auto mb-10 text-gray-300">
-                    Your vision deserves a top-tier team. Let&apos;s discuss your project
+                    Your vision deserves a top-tier team. Let discuss your project
                     and turn your ideas into a reality that stands out.
                 </p>
 
