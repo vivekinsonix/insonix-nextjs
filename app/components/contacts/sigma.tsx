@@ -27,43 +27,35 @@ const SigmaGraph: React.FC = () => {
 
         const graph = new Graph();
 
-        // Add nodes from JSON
+        // Add nodes
         data.nodes.forEach((node) => {
             if (!graph.hasNode(node.id)) {
-                const baseSize = node.size || 10;
-                const pulseOffset = Math.random() * Math.PI * 2;
-
                 graph.addNode(node.id, {
                     ...node,
-                    baseSize,
-                    pulseOffset,
+                    baseSize: node.size || 10,
+                    pulseOffset: Math.random() * Math.PI * 2,
                 });
             }
         });
 
-        // Add edges from JSON
+        // Add edges
         data.edges.forEach((edge) => {
             graph.addEdge(edge.source, edge.target, { ...edge });
         });
 
         const renderer = new Sigma(graph, containerRef.current);
 
-        // --- Label settings ---
+        // Label settings
         renderer.setSetting("labelSize", 16);
         renderer.setSetting("labelRenderedSizeThreshold", 0);
         renderer.setSetting("labelDensity", 1);
         renderer.setSetting("labelGridCellSize", 60);
-
-        // Per-node label colors & backgrounds
         renderer.setSetting("labelColor", { mode: "nodes", attribute: "labelColor" });
         renderer.setSetting("labelBackground", "node");
         renderer.setSetting("labelBackgroundColor", { mode: "nodes", attribute: "labelBackground" });
         renderer.setSetting("labelBackgroundAlpha", 1);
 
-        const state = {
-            hoveredNode: null as string | null,
-            hoveredNeighbors: null as Set<string> | null,
-        };
+        const state = { hoveredNode: null as string | null, hoveredNeighbors: null as Set<string> | null };
 
         // Populate datalist for search
         datalistRef.current.innerHTML = graph
@@ -71,7 +63,6 @@ const SigmaGraph: React.FC = () => {
             .map((node) => `<option value="${graph.getNodeAttribute(node, "label")}"></option>`)
             .join("\n");
 
-        // Hover handling
         const setHoveredNode = (node?: string) => {
             if (node) {
                 state.hoveredNode = node;
@@ -83,10 +74,9 @@ const SigmaGraph: React.FC = () => {
             renderer.refresh({ skipIndexation: true });
         };
 
-        // Node reducer — apply label size + colors
+        // Node reducer
         renderer.setSetting("nodeReducer", (node, data) => {
             const res: Partial<CustomNodeDisplayData> = { ...data };
-
             res.label = data.label;
             res.labelSize = typeof data.labelSize === "number" ? data.labelSize : 24;
             res.labelColor = "#ffffff";
@@ -108,7 +98,7 @@ const SigmaGraph: React.FC = () => {
             return res;
         });
 
-        // Edge reducer — hide unrelated edges
+        // Edge reducer
         renderer.setSetting("edgeReducer", (edge, data) => {
             const res: Partial<EdgeDisplayData> = { ...data };
             if (
@@ -121,7 +111,7 @@ const SigmaGraph: React.FC = () => {
             return res;
         });
 
-        // Search functionality
+        // Search
         const handleSearch = () => {
             const value = inputRef.current?.value?.trim().toLowerCase();
             if (!value) return;
@@ -136,15 +126,13 @@ const SigmaGraph: React.FC = () => {
 
                 const camera = renderer.getCamera();
                 const pos = renderer.getNodeDisplayData(foundNode);
-                if (pos) {
-                    camera.animate(pos, { duration: 600 });
-                }
+                if (pos) camera.animate(pos, { duration: 600 });
             }
         };
 
         inputRef.current?.addEventListener("change", handleSearch);
 
-        // Sigma event listeners
+        // Sigma events
         renderer.on("enterNode", ({ node }) => setHoveredNode(node));
         renderer.on("leaveNode", () => setHoveredNode(undefined));
         renderer.on("clickNode", ({ node }) => {
@@ -152,26 +140,20 @@ const SigmaGraph: React.FC = () => {
             setSelectedNode({ id: node, ...attributes });
         });
 
-        // Animation loop for pulsing effect
+        // Pulse animation
         let animationFrame: number;
         const animate = () => {
             const t = Date.now() / 1000;
-
             graph.forEachNode((node) => {
                 const baseSize = graph.getNodeAttribute(node, "baseSize") || 8;
                 const offset = graph.getNodeAttribute(node, "pulseOffset") || 0;
-
-                const pulse = Math.sin(t * 4 + offset) * 1.5 + baseSize;
-                graph.setNodeAttribute(node, "size", pulse);
+                graph.setNodeAttribute(node, "size", Math.sin(t * 4 + offset) * 1.5 + baseSize);
             });
-
             renderer.refresh();
             animationFrame = requestAnimationFrame(animate);
         };
-
         animate();
 
-        // Cleanup
         return () => {
             renderer.kill();
             inputRef.current?.removeEventListener("change", handleSearch);
@@ -190,16 +172,14 @@ const SigmaGraph: React.FC = () => {
                         list="suggestions"
                         placeholder="Search Your Project Category..."
                         className="border-0 shadow-lg bg-gradient-to-r from-teal-200 to-blue-200 p-3 mb-2 w-full rounded text-black"
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-                        }}
+                        onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
                     />
                 </div>
             </div>
 
             <datalist id="suggestions" ref={datalistRef} />
 
-            <div ref={containerRef} id="sigma-container" style={{ height: "900px", width: "100%" }} />
+            <div ref={containerRef} style={{ height: "900px", width: "100%" }} />
 
             {selectedNode && (
                 <div className="fixed inset-0 bg-indigo-800/50 flex justify-center items-center z-50">
