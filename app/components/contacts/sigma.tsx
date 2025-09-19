@@ -27,7 +27,7 @@ const SigmaGraph: React.FC = () => {
 
         const graph = new Graph();
 
-        // Add nodes
+        // Add nodes from JSON
         data.nodes.forEach((node) => {
             if (!graph.hasNode(node.id)) {
                 graph.addNode(node.id, {
@@ -38,22 +38,18 @@ const SigmaGraph: React.FC = () => {
             }
         });
 
-        // Add edges
+        // Add edges from JSON
         data.edges.forEach((edge) => {
             graph.addEdge(edge.source, edge.target, { ...edge });
         });
 
         const renderer = new Sigma(graph, containerRef.current);
 
-        // Label settings
+        // General label settings
         renderer.setSetting("labelSize", 16);
         renderer.setSetting("labelRenderedSizeThreshold", 0);
         renderer.setSetting("labelDensity", 1);
         renderer.setSetting("labelGridCellSize", 60);
-        renderer.setSetting("labelColor", { mode: "nodes", attribute: "labelColor" });
-        renderer.setSetting("labelBackground", "node");
-        renderer.setSetting("labelBackgroundColor", { mode: "nodes", attribute: "labelBackground" });
-        renderer.setSetting("labelBackgroundAlpha", 1);
 
         const state = { hoveredNode: null as string | null, hoveredNeighbors: null as Set<string> | null };
 
@@ -74,13 +70,13 @@ const SigmaGraph: React.FC = () => {
             renderer.refresh({ skipIndexation: true });
         };
 
-        // Node reducer
+        // Node reducer — handles label color & background
         renderer.setSetting("nodeReducer", (node, data) => {
             const res: Partial<CustomNodeDisplayData> = { ...data };
             res.label = data.label;
             res.labelSize = typeof data.labelSize === "number" ? data.labelSize : 24;
-            res.labelColor = "#ffffff";
-            res.labelBackground = "transparent";
+            res.labelColor = data.labelColor || "#ffffff";
+            res.labelBackground = data.labelBackground || "transparent";
             res.color = data.color || "#fff";
 
             if (state.hoveredNeighbors && !state.hoveredNeighbors.has(node) && state.hoveredNode !== node) {
@@ -98,7 +94,7 @@ const SigmaGraph: React.FC = () => {
             return res;
         });
 
-        // Edge reducer
+        // Edge reducer — hide unrelated edges
         renderer.setSetting("edgeReducer", (edge, data) => {
             const res: Partial<EdgeDisplayData> = { ...data };
             if (
@@ -111,7 +107,7 @@ const SigmaGraph: React.FC = () => {
             return res;
         });
 
-        // Search
+        // Search functionality
         const handleSearch = () => {
             const value = inputRef.current?.value?.trim().toLowerCase();
             if (!value) return;
@@ -154,6 +150,7 @@ const SigmaGraph: React.FC = () => {
         };
         animate();
 
+        // Cleanup
         return () => {
             renderer.kill();
             inputRef.current?.removeEventListener("change", handleSearch);
