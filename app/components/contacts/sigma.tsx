@@ -50,18 +50,14 @@ const SigmaGraph: React.FC = () => {
 
         // --- Label settings ---
         renderer.setSetting("labelSize", 16);
-        renderer.setSetting("labelSizeMode", "fixed");
         renderer.setSetting("labelRenderedSizeThreshold", 0);
         renderer.setSetting("labelDensity", 1);
         renderer.setSetting("labelGridCellSize", 60);
 
-        // 👇 Allow per-node label colors & backgrounds
+        // Per-node label colors & backgrounds
         renderer.setSetting("labelColor", { mode: "nodes", attribute: "labelColor" });
         renderer.setSetting("labelBackground", "node");
-        renderer.setSetting("labelBackgroundColor", {
-            mode: "nodes",
-            attribute: "labelBackground",
-        });
+        renderer.setSetting("labelBackgroundColor", { mode: "nodes", attribute: "labelBackground" });
         renderer.setSetting("labelBackgroundAlpha", 1);
 
         const state = {
@@ -76,7 +72,7 @@ const SigmaGraph: React.FC = () => {
             .join("\n");
 
         // Hover handling
-        function setHoveredNode(node?: string) {
+        const setHoveredNode = (node?: string) => {
             if (node) {
                 state.hoveredNode = node;
                 state.hoveredNeighbors = new Set(graph.neighbors(node));
@@ -85,7 +81,7 @@ const SigmaGraph: React.FC = () => {
                 state.hoveredNeighbors = null;
             }
             renderer.refresh({ skipIndexation: true });
-        }
+        };
 
         // Node reducer — apply label size + colors
         renderer.setSetting("nodeReducer", (node, data) => {
@@ -93,17 +89,11 @@ const SigmaGraph: React.FC = () => {
 
             res.label = data.label;
             res.labelSize = typeof data.labelSize === "number" ? data.labelSize : 24;
-
-            // Default: white label text (no bg)
             res.labelColor = "#ffffff";
             res.labelBackground = "transparent";
             res.color = data.color || "#fff";
 
-            if (
-                state.hoveredNeighbors &&
-                !state.hoveredNeighbors.has(node) &&
-                state.hoveredNode !== node
-            ) {
+            if (state.hoveredNeighbors && !state.hoveredNeighbors.has(node) && state.hoveredNode !== node) {
                 res.label = "";
                 res.color = "#fafa";
             }
@@ -111,8 +101,6 @@ const SigmaGraph: React.FC = () => {
             if (state.hoveredNode === node) {
                 res.size = (data.baseSize || data.size || 10) + 4;
                 res.labelSize = (data.labelSize || 24) + 6;
-
-                // 👇 Hovered node: black text with white background
                 res.labelColor = "#000000";
                 res.labelBackground = "#ffffff";
             }
@@ -133,7 +121,7 @@ const SigmaGraph: React.FC = () => {
             return res;
         });
 
-        // Search
+        // Search functionality
         const handleSearch = () => {
             const value = inputRef.current?.value?.trim().toLowerCase();
             if (!value) return;
@@ -156,7 +144,7 @@ const SigmaGraph: React.FC = () => {
 
         inputRef.current?.addEventListener("change", handleSearch);
 
-        // Event listeners
+        // Sigma event listeners
         renderer.on("enterNode", ({ node }) => setHoveredNode(node));
         renderer.on("leaveNode", () => setHoveredNode(undefined));
         renderer.on("clickNode", ({ node }) => {
@@ -211,11 +199,7 @@ const SigmaGraph: React.FC = () => {
 
             <datalist id="suggestions" ref={datalistRef} />
 
-            <div
-                ref={containerRef}
-                id="sigma-container"
-                style={{ height: "900px", width: "100%" }}
-            />
+            <div ref={containerRef} id="sigma-container" style={{ height: "900px", width: "100%" }} />
 
             {selectedNode && (
                 <div className="fixed inset-0 bg-indigo-800/50 flex justify-center items-center z-50">
@@ -238,9 +222,7 @@ const SigmaGraph: React.FC = () => {
                         </div>
 
                         <div className="flex flex-col gap-2 mb-4 text-left">
-                            <label className="text-sm font-medium text-gray-700">
-                                Select Date & Time
-                            </label>
+                            <label className="text-sm font-medium text-gray-700">Select Date & Time</label>
                             <DatePicker
                                 selected={startDate}
                                 onChange={(date) => setStartDate(date as Date)}
@@ -256,7 +238,7 @@ const SigmaGraph: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setSelectedNode(null)}
-                                className="bg-transoarent border-1 border-blue-500 text-black px-4  font-bold py-3 rounded-full uppercase tracking-wide hover:scale-105 transition"
+                                className="bg-transparent border border-blue-500 text-black px-4 font-bold py-3 rounded-full uppercase tracking-wide hover:scale-105 transition"
                             >
                                 Cancel
                             </button>
