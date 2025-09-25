@@ -10,6 +10,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 interface CustomNodeDisplayData extends NodeDisplayData {
+    baseSize?: number;         // added for node size
+    pulseOffset?: number;      // added for pulsing animation
     labelSize?: number;
     labelColor?: string;
     labelBackground?: string;
