@@ -1,7 +1,7 @@
 "use client";
 
 
-// import SigmaGraph from "./sigma";
+import SigmaGraph from "./sigma";
 
 export default function Contact() {
     return (
@@ -32,9 +32,9 @@ export default function Contact() {
 
 
 
-                {/* <SigmaGraph /> */}
+                <SigmaGraph />
 
-                {/* CTA Button */}s
+                {/* CTA Button */}
                 {/* <Button
                     as="a"
                     href="mailto:contact@yourcompany.com"

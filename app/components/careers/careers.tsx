@@ -91,7 +91,7 @@ export default function Careers() {
 
                             <div className="mt-6">
                                 <a
-                                    href={`/careers/openings/details/${j.slug}`}
+                                    href="components/careers/careersdetail"
                                     className="inline-block rounded-lg bg-blue-500 px-5 py-2 text-black font-medium hover:bg-blue-600 transition"
                                 >
                                     Apply Now

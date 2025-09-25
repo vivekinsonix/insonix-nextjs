@@ -130,6 +130,7 @@ export default function Services() {
                             {service.icon}
                             <h3 className="text-2xl font-bold mb-4">{service.title}</h3>
                             <p className="text-gray-300">{service.desc}</p>
+                            <a className="mt-3 inline-block text-blue-500 font-semibold" href="/components/service/service-detail">Read more →</a>
                         </Card>
                     ))}
                 </div>
