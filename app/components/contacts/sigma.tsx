@@ -27,54 +27,72 @@ const SigmaGraph: React.FC = () => {
 
         const graph = new Graph();
 
-        // Add nodes from JSON
+        const state = {
+            hoveredNode: null as string | null,
+            hoveredNeighbors: null as Set<string> | null,
+        };
+
+        // Add nodes
         data.nodes.forEach((node) => {
             if (!graph.hasNode(node.id)) {
-                const baseSize = node.size || 10;
-                const pulseOffset = Math.random() * Math.PI * 2;
-
                 graph.addNode(node.id, {
                     ...node,
-                    baseSize,
-                    pulseOffset,
+                    baseSize: node.size || 10,
+                    pulseOffset: Math.random() * Math.PI * 2,
                 });
             }
         });
 
-        // Add edges from JSON
+        // Add edges
         data.edges.forEach((edge) => {
             graph.addEdge(edge.source, edge.target, { ...edge });
         });
 
         const renderer = new Sigma(graph, containerRef.current);
 
-        // --- Label settings (no labelSizeMode in Sigma v2) ---
-        renderer.setSetting("labelSize", 16);
-        renderer.setSetting("labelRenderedSizeThreshold", 0);
-        renderer.setSetting("labelDensity", 1);
-        renderer.setSetting("labelGridCellSize", 60);
+        // Node reducer for per-node label and hover
+        renderer.setSetting("nodeReducer", (node: string, data: any) => {
+            const d = data as CustomNodeDisplayData;
+            const res: Partial<CustomNodeDisplayData> = { ...d };
 
-        // Allow per-node label colors & backgrounds
-        renderer.setSetting("labelColor", { mode: "nodes", attribute: "labelColor" });
-        renderer.setSetting("labelBackground", "node");
-        renderer.setSetting("labelBackgroundColor", {
-            mode: "nodes",
-            attribute: "labelBackground",
+            res.label = d.label;
+            res.labelSize = d.labelSize ?? 24;
+            res.labelColor = "#fff";
+            res.labelBackground = "transparent";
+            res.color = d.color ?? "#fff";
+
+            if (state.hoveredNeighbors && !state.hoveredNeighbors.has(node) && state.hoveredNode !== node) {
+                res.label = "";
+                res.color = "#fafa";
+            }
+
+            if (state.hoveredNode === node) {
+                res.size = (d.baseSize ?? d.size ?? 10) + 4;
+                res.labelSize = (d.labelSize ?? 24) + 6;
+                res.labelColor = "#000";
+                res.labelBackground = "#fff";
+            }
+
+            return res;
         });
-        renderer.setSetting("labelBackgroundAlpha", 1);
 
-        const state = {
-            hoveredNode: null as string | null,
-            hoveredNeighbors: null as Set<string> | null,
-        };
+        // Edge reducer for hiding unrelated edges
+        renderer.setSetting("edgeReducer", (edge, data) => {
+            const res: Partial<EdgeDisplayData> = { ...data };
+            if (
+                state.hoveredNode &&
+                !graph.extremities(edge).includes(state.hoveredNode) &&
+                !graph.areNeighbors(graph.source(edge), state.hoveredNode)
+            ) {
+                res.hidden = true;
+            }
+            return res;
+        });
 
         // Populate datalist for search
         datalistRef.current.innerHTML = graph
             .nodes()
-            .map(
-                (node) =>
-                    `<option value="${graph.getNodeAttribute(node, "label")}"></option>`
-            )
+            .map((node) => `<option value="${graph.getNodeAttribute(node, "label")}"></option>`)
             .join("\n");
 
         // Hover handling
@@ -89,52 +107,6 @@ const SigmaGraph: React.FC = () => {
             renderer.refresh({ skipIndexation: true });
         }
 
-        // Node reducer — apply label size + colors
-        renderer.setSetting("nodeReducer", (node, data) => {
-            const res: Partial<CustomNodeDisplayData> = { ...data };
-
-            res.label = data.label;
-            res.labelSize = typeof data.labelSize === "number" ? data.labelSize : 16;
-
-            // Default: white label text (no bg)
-            res.labelColor = "#ffffff";
-            res.labelBackground = "transparent";
-            res.color = data.color || "#fff";
-
-            if (
-                state.hoveredNeighbors &&
-                !state.hoveredNeighbors.has(node) &&
-                state.hoveredNode !== node
-            ) {
-                res.label = "";
-                res.color = "#fafa";
-            }
-
-            if (state.hoveredNode === node) {
-                res.size = (data.baseSize || data.size || 10) + 4;
-                res.labelSize = (data.labelSize || 16) + 6;
-
-                // Hovered node: black text with white background
-                res.labelColor = "#000000";
-                res.labelBackground = "#ffffff";
-            }
-
-            return res;
-        });
-
-        // Edge reducer — hide unrelated edges
-        renderer.setSetting("edgeReducer", (edge, data) => {
-            const res: Partial<EdgeDisplayData> = { ...data };
-            if (
-                state.hoveredNode &&
-                !graph.extremities(edge).includes(state.hoveredNode) &&
-                !graph.areNeighbors(graph.source(edge), state.hoveredNode)
-            ) {
-                res.hidden = true;
-            }
-            return res;
-        });
-
         // Search
         const handleSearch = () => {
             const value = inputRef.current?.value?.trim().toLowerCase();
@@ -142,10 +114,7 @@ const SigmaGraph: React.FC = () => {
 
             const foundNode = graph
                 .nodes()
-                .find(
-                    (n) =>
-                        graph.getNodeAttribute(n, "label")?.toLowerCase() === value
-                );
+                .find((n) => graph.getNodeAttribute(n, "label")?.toLowerCase() === value);
 
             if (foundNode) {
                 const attributes = graph.getNodeAttributes(foundNode);
@@ -159,9 +128,9 @@ const SigmaGraph: React.FC = () => {
             }
         };
 
-        inputRef.current?.addEventListener("change", handleSearch);
+        inputRef.current.addEventListener("change", handleSearch);
 
-        // Event listeners
+        // Node events
         renderer.on("enterNode", ({ node }) => setHoveredNode(node));
         renderer.on("leaveNode", () => setHoveredNode(undefined));
         renderer.on("clickNode", ({ node }) => {
@@ -169,23 +138,19 @@ const SigmaGraph: React.FC = () => {
             setSelectedNode({ id: node, ...attributes });
         });
 
-        // Animation loop for pulsing effect
+        // Pulsing animation
         let animationFrame: number;
         const animate = () => {
             const t = Date.now() / 1000;
-
             graph.forEachNode((node) => {
                 const baseSize = graph.getNodeAttribute(node, "baseSize") || 8;
                 const offset = graph.getNodeAttribute(node, "pulseOffset") || 0;
-
                 const pulse = Math.sin(t * 4 + offset) * 1.5 + baseSize;
                 graph.setNodeAttribute(node, "size", pulse);
             });
-
             renderer.refresh();
             animationFrame = requestAnimationFrame(animate);
         };
-
         animate();
 
         // Cleanup
@@ -198,7 +163,7 @@ const SigmaGraph: React.FC = () => {
 
     return (
         <div className="graph-container p-4">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4 mb-4">
                 <div></div>
                 <div>
                     <input
@@ -216,11 +181,7 @@ const SigmaGraph: React.FC = () => {
 
             <datalist id="suggestions" ref={datalistRef} />
 
-            <div
-                ref={containerRef}
-                id="sigma-container"
-                style={{ height: "900px", width: "100%" }}
-            />
+            <div ref={containerRef} id="sigma-container" style={{ height: "900px", width: "100%" }} />
 
             {selectedNode && (
                 <div className="fixed inset-0 bg-indigo-800/50 flex justify-center items-center z-50">
