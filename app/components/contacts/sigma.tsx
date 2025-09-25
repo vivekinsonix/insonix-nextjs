@@ -48,14 +48,13 @@ const SigmaGraph: React.FC = () => {
 
         const renderer = new Sigma(graph, containerRef.current);
 
-        // --- Label settings ---
+        // --- Label settings (no labelSizeMode in Sigma v2) ---
         renderer.setSetting("labelSize", 16);
-        renderer.setSetting("labelSizeMode", "fixed");
         renderer.setSetting("labelRenderedSizeThreshold", 0);
         renderer.setSetting("labelDensity", 1);
         renderer.setSetting("labelGridCellSize", 60);
 
-        // 👇 Allow per-node label colors & backgrounds
+        // Allow per-node label colors & backgrounds
         renderer.setSetting("labelColor", { mode: "nodes", attribute: "labelColor" });
         renderer.setSetting("labelBackground", "node");
         renderer.setSetting("labelBackgroundColor", {
@@ -72,7 +71,10 @@ const SigmaGraph: React.FC = () => {
         // Populate datalist for search
         datalistRef.current.innerHTML = graph
             .nodes()
-            .map((node) => `<option value="${graph.getNodeAttribute(node, "label")}"></option>`)
+            .map(
+                (node) =>
+                    `<option value="${graph.getNodeAttribute(node, "label")}"></option>`
+            )
             .join("\n");
 
         // Hover handling
@@ -92,7 +94,7 @@ const SigmaGraph: React.FC = () => {
             const res: Partial<CustomNodeDisplayData> = { ...data };
 
             res.label = data.label;
-            res.labelSize = typeof data.labelSize === "number" ? data.labelSize : 24;
+            res.labelSize = typeof data.labelSize === "number" ? data.labelSize : 16;
 
             // Default: white label text (no bg)
             res.labelColor = "#ffffff";
@@ -110,9 +112,9 @@ const SigmaGraph: React.FC = () => {
 
             if (state.hoveredNode === node) {
                 res.size = (data.baseSize || data.size || 10) + 4;
-                res.labelSize = (data.labelSize || 24) + 6;
+                res.labelSize = (data.labelSize || 16) + 6;
 
-                // 👇 Hovered node: black text with white background
+                // Hovered node: black text with white background
                 res.labelColor = "#000000";
                 res.labelBackground = "#ffffff";
             }
@@ -140,7 +142,10 @@ const SigmaGraph: React.FC = () => {
 
             const foundNode = graph
                 .nodes()
-                .find((n) => graph.getNodeAttribute(n, "label")?.toLowerCase() === value);
+                .find(
+                    (n) =>
+                        graph.getNodeAttribute(n, "label")?.toLowerCase() === value
+                );
 
             if (foundNode) {
                 const attributes = graph.getNodeAttributes(foundNode);
@@ -195,18 +200,18 @@ const SigmaGraph: React.FC = () => {
         <div className="graph-container p-4">
             <div className="grid grid-cols-3 gap-4">
                 <div></div>
-                <div>  <input
-                    ref={inputRef}
-                    list="suggestions"
-                    placeholder="Search Your Project Category..."
-                    className="border-0 shadow-lg bg-gradient-to-r from-teal-200 to-blue-200 p-3 mb-2 w-full rounded text-black"
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-                    }}
-                /></div>
                 <div>
-
+                    <input
+                        ref={inputRef}
+                        list="suggestions"
+                        placeholder="Search Your Project Category..."
+                        className="border-0 shadow-lg bg-gradient-to-r from-teal-200 to-blue-200 p-3 mb-2 w-full rounded text-black"
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                        }}
+                    />
                 </div>
+                <div></div>
             </div>
 
             <datalist id="suggestions" ref={datalistRef} />
@@ -256,7 +261,7 @@ const SigmaGraph: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setSelectedNode(null)}
-                                className="bg-transoarent border-1 border-blue-500 text-black px-4  font-bold py-3 rounded-full uppercase tracking-wide hover:scale-105 transition"
+                                className="bg-transparent border border-blue-500 text-black px-4 font-bold py-3 rounded-full uppercase tracking-wide hover:scale-105 transition"
                             >
                                 Cancel
                             </button>
