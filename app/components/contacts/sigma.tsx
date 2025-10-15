@@ -2,8 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Graph from "graphology";
-import Sigma from "sigma";
-import { EdgeDisplayData, NodeDisplayData } from "sigma/types";
+import type { EdgeDisplayData, NodeDisplayData } from "sigma/types";
 import data from "./data.json";
 import { Label, Textarea } from "flowbite-react";
 import DatePicker from "react-datepicker";
@@ -48,11 +47,24 @@ const SigmaGraph: React.FC = () => {
             }
         });
 
-        // --- Renderer ---
-        const renderer = new Sigma(
-            graph,
-            containerRef.current,
-            {
+        // --- Renderer (dynamically import Sigma on client only) ---
+        let renderer: any = null;
+        const state = {
+            hoveredNode: null as string | null,
+            hoveredNeighbors: null as Set<string> | null,
+        };
+
+        let animationFrame: number | null = null;
+        let outerInputEl: HTMLInputElement | null = null;
+        let outerHandleSearch: (() => void) | null = null;
+
+        (async () => {
+            // Dynamically import Sigma to avoid referencing WebGL on the server
+            const SigmaModule = await import("sigma");
+            // default export contains the constructor
+            const SigmaCtor = (SigmaModule as any).default ?? (SigmaModule as any);
+
+            const settings = {
                 labelSize: 16,
                 labelRenderedSizeThreshold: 0,
                 labelGridCellSize: 60,
@@ -62,122 +74,131 @@ const SigmaGraph: React.FC = () => {
                 labelBackground: "node",
                 labelBackgroundColor: { mode: "nodes", attribute: "color" },
                 labelBackgroundAlpha: 0.3,
-            } as any // ✅ cast as any to bypass strict type
-        );
+            } as unknown as any;
 
-        const state = {
-            hoveredNode: null as string | null,
-            hoveredNeighbors: null as Set<string> | null,
-        };
+            renderer = new SigmaCtor(graph, containerRef.current, settings);
 
-        // --- Populate datalist for search ---
-        datalistRef.current.innerHTML = graph
-            .nodes()
-            .map((node) => `<option value="${graph.getNodeAttribute(node, "label")}"></option>`)
-            .join("\n");
-
-        // --- Hover handling ---
-        const setHoveredNode = (node?: string) => {
-            if (node) {
-                state.hoveredNode = node;
-                state.hoveredNeighbors = new Set(graph.neighbors(node));
-            } else {
-                state.hoveredNode = null;
-                state.hoveredNeighbors = null;
-            }
-            renderer.refresh({ skipIndexation: true });
-        };
-
-        // --- Node reducer ---
-        renderer.setSetting("nodeReducer", (node: string, data: CustomNodeDisplayData) => {
-            const res: CustomNodeDisplayData = { ...data };
-            res.label = data.label;
-            res.labelSize = data.labelSize ?? 24;
-            res.labelColor = "#ffffff";
-            res.labelBackground = "transparent";
-            res.color = data.color || "#fff";
-
-            if (
-                state.hoveredNeighbors &&
-                !state.hoveredNeighbors.has(node) &&
-                state.hoveredNode !== node
-            ) {
-                res.label = "";
-                res.color = "#fafa";
-            }
-
-            if (state.hoveredNode === node) {
-                res.size = (data.baseSize ?? data.size ?? 10) + 4;
-                res.labelSize = (data.labelSize ?? 24) + 6;
-                res.labelColor = "#000000";
-                res.labelBackground = "#ffffff";
-            }
-
-            return res;
-        });
-
-        // --- Edge reducer ---
-        renderer.setSetting("edgeReducer", (edge: string, data: EdgeDisplayData) => {
-            const res: Partial<EdgeDisplayData> = { ...data };
-            if (
-                state.hoveredNode &&
-                !graph.extremities(edge).includes(state.hoveredNode) &&
-                !graph.areNeighbors(graph.source(edge), state.hoveredNode)
-            ) {
-                res.hidden = true;
-            }
-            return res;
-        });
-
-        // --- Search ---
-        const handleSearch = () => {
-            const value = inputRef.current?.value?.trim().toLowerCase();
-            if (!value) return;
-
-            const foundNode = graph
+            // --- Populate datalist for search ---
+            datalistRef.current!.innerHTML = graph
                 .nodes()
-                .find((n) => graph.getNodeAttribute(n, "label")?.toLowerCase() === value);
+                .map((node) => `<option value="${graph.getNodeAttribute(node, "label")}"></option>`)
+                .join("\n");
 
-            if (foundNode) {
-                const attributes = graph.getNodeAttributes(foundNode);
-                setSelectedNode({ id: foundNode, ...attributes });
+            // --- Hover handling ---
+            const setHoveredNode = (node?: string) => {
+                if (node) {
+                    state.hoveredNode = node;
+                    state.hoveredNeighbors = new Set(graph.neighbors(node));
+                } else {
+                    state.hoveredNode = null;
+                    state.hoveredNeighbors = null;
+                }
+                renderer.refresh({ skipIndexation: true });
+            };
 
-                const camera = renderer.getCamera();
-                const pos = renderer.getNodeDisplayData(foundNode);
-                if (pos) camera.animate(pos, { duration: 600 });
-            }
-        };
+            // --- Node reducer ---
+            renderer.setSetting("nodeReducer", (node: string, data: any) => {
+                const res: CustomNodeDisplayData = { ...data };
+                res.label = data.label;
+                res.labelSize = data.labelSize ?? 24;
+                res.labelColor = "#ffffff";
+                res.labelBackground = "transparent";
+                res.color = data.color || "#fff";
 
-        inputRef.current?.addEventListener("change", handleSearch);
+                if (
+                    state.hoveredNeighbors &&
+                    !state.hoveredNeighbors.has(node) &&
+                    state.hoveredNode !== node
+                ) {
+                    res.label = "";
+                    res.color = "#fafa";
+                }
 
-        // --- Sigma events ---
-        renderer.on("enterNode", ({ node }) => setHoveredNode(node));
-        renderer.on("leaveNode", () => setHoveredNode(undefined));
-        renderer.on("clickNode", ({ node }) => {
-            const attributes = graph.getNodeAttributes(node);
-            setSelectedNode({ id: node, ...attributes });
-        });
+                if (state.hoveredNode === node) {
+                    res.size = (data.baseSize ?? data.size ?? 10) + 4;
+                    res.labelSize = (data.labelSize ?? 24) + 6;
+                    res.labelColor = "#000000";
+                    res.labelBackground = "#ffffff";
+                }
 
-        // --- Pulse animation ---
-        let animationFrame: number;
-        const animate = () => {
-            const t = Date.now() / 1000;
-            graph.forEachNode((node) => {
-                const baseSize = graph.getNodeAttribute(node, "baseSize") ?? 8;
-                const offset = graph.getNodeAttribute(node, "pulseOffset") ?? 0;
-                const pulse = Math.sin(t * 4 + offset) * 1.5 + baseSize;
-                graph.setNodeAttribute(node, "size", pulse);
+                return res;
             });
-            renderer.refresh();
-            animationFrame = requestAnimationFrame(animate);
-        };
-        animate();
+
+            // --- Edge reducer ---
+            renderer.setSetting("edgeReducer", (edge: string, data: any) => {
+                const res: Partial<EdgeDisplayData> = { ...data };
+                if (
+                    state.hoveredNode &&
+                    !graph.extremities(edge).includes(state.hoveredNode) &&
+                    !graph.areNeighbors(graph.source(edge), state.hoveredNode)
+                ) {
+                    res.hidden = true;
+                }
+                return res;
+            });
+
+            // --- Search ---
+            const handleSearchLocal = () => {
+                const value = inputRef.current?.value?.trim().toLowerCase();
+                if (!value) return;
+
+                const foundNode = graph
+                    .nodes()
+                    .find((n) => graph.getNodeAttribute(n, "label")?.toLowerCase() === value);
+
+                if (foundNode) {
+                    const attributes = graph.getNodeAttributes(foundNode);
+                    setSelectedNode({ id: foundNode, ...attributes });
+
+                    const camera = renderer.getCamera();
+                    const pos = renderer.getNodeDisplayData(foundNode);
+                    if (pos) camera.animate(pos, { duration: 600 });
+                }
+            };
+
+            // attach search listener (capture element reference)
+            const inputEl = inputRef.current;
+            inputEl?.addEventListener("change", handleSearchLocal);
+            // expose to outer scope for cleanup
+            outerInputEl = inputEl;
+            outerHandleSearch = handleSearchLocal;
+
+            // --- Sigma events ---
+            renderer.on("enterNode", ({ node }: { node: string }) => setHoveredNode(node));
+            renderer.on("leaveNode", () => setHoveredNode(undefined));
+            renderer.on("clickNode", ({ node }: { node: string }) => {
+                const attributes = graph.getNodeAttributes(node);
+                setSelectedNode({ id: node, ...attributes });
+            });
+
+            // --- Pulse animation ---
+            const animate = () => {
+                const t = Date.now() / 1000;
+                graph.forEachNode((node) => {
+                    const baseSize = graph.getNodeAttribute(node, "baseSize") ?? 8;
+                    const offset = graph.getNodeAttribute(node, "pulseOffset") ?? 0;
+                    const pulse = Math.sin(t * 4 + offset) * 1.5 + baseSize;
+                    graph.setNodeAttribute(node, "size", pulse);
+                });
+                renderer.refresh();
+                animationFrame = requestAnimationFrame(animate);
+            };
+            animate();
+
+            // cleanup when effect is torn down - nothing to do here; outer cleanup will run
+        })();
 
         // --- Cleanup ---
         return () => {
-            renderer.kill();
-            inputRef.current?.removeEventListener("change", handleSearch);
-            cancelAnimationFrame(animationFrame);
+            try {
+                if (renderer && typeof renderer.kill === "function") renderer.kill();
+            } catch {
+                // ignore
+            }
+            if (outerInputEl && outerHandleSearch) {
+                outerInputEl.removeEventListener("change", outerHandleSearch);
+            }
+            if (animationFrame != null) cancelAnimationFrame(animationFrame);
         };
     }, []);
 
